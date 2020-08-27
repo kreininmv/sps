@@ -1,45 +1,56 @@
 #include <stdio.h>
 #include <math.h>
 
-int SolveEq(float a, float b, float c, float *x1, float *x2)
+int SolveLin(double b, double c, double *sol1, double *sol2)
 {
-  float D;
+  *sol1 = *sol2 = -c / b;
+  return 1;
+}
+int SolveQuad(double a, double b, double c, double *sol1, double *sol2)
+{
+  double D = sqrt(b * b - 4 * a * c);
+  *sol1 = (-b + D) / (2 * a);
+  *sol2 = (-b - D) / (2 * a);
+  return (D == 0) ? 1 : 2;
+}
+
+int SolveEq(double a, double b, double c, double *sol1, double *sol2)
+{
   if (a == 0 && b == 0 && c == 0)
     return 0x1E;
   else if (a == 0 && b == 0)
     return 0;
   else if (a == 0)
-  {
-    *x1 = *x2 = -c / b;
-    return 1;
-  }
+    return SolveLin(b, c, sol1, sol2);
   else if (b * b - 4 * a * c >= 0)
-  {
-    D = sqrt(b * b - 4 * a * c);
-    *x1 = (- b + D) / (2 * a);
-    *x2 = (- b - D) / (2 * a);
-    if (D == 0)
-      return 1;
-    else
-      return 2;
-  }
+    return SolveQuad(a, b, c, sol1, sol2);
   else
     return 0;
 }
 void main(void)
 {
-  float a, b, c, res, x1, x2;
+  double a, b, c, sol1, sol2;
+  int res;
  
-  scanf("%f %f %f", &a, &b, &c);
+  scanf("%lf %lf %lf", &a, &b, &c);
 
-  res = SolveEq(a, b, c, &x1, &x2);
+  res = SolveEq(a, b, c, &sol1, &sol2);
   
-  if (res == 0x1E)
+  switch (res)
+  {
+  case 0x1E:
     printf("Any number is solution!\n");
-  else if (res == 0)
+    break;
+  case 0:
     printf("Equation has no solutions!\n");
-  else if (res == 1)
-    printf("Equation has 1 solution, x = %f\n", x1);
-  else
-    printf("Equation has 2 solutions, x1 = %f and x2 = %f\n", x1, x2);
+    break;
+  case 1:
+    printf("Equation has 1 solution, x = %lf\n", sol1);
+    break;
+  case 2:
+    printf("Equation has 2 solutions, x1 = %lf and x2 = %lf\n", sol1, sol2);
+    break;
+  }
+  getchar();
+  getchar();
 }
