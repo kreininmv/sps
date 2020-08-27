@@ -1,6 +1,13 @@
 #include <stdio.h>
 #include <math.h>
 
+#define per_error 0.0000000005
+int Compr(double a, double b)
+{
+  if (fabs(a - b) <= per_error)
+    return 1;
+  return 0;
+}
 int SolveLin(double b, double c, double *sol1, double *sol2)
 {
   *sol1 = *sol2 = -c / b;
@@ -8,29 +15,32 @@ int SolveLin(double b, double c, double *sol1, double *sol2)
 }
 int SolveQuad(double a, double b, double c, double *sol1, double *sol2)
 {
-  double D = sqrt(b * b - 4 * a * c);
-  *sol1 = (-b + D) / (2 * a);
-  *sol2 = (-b - D) / (2 * a);
-  return (D == 0) ? 1 : 2;
+  double Dis = sqrt(b * b - 4 * a * c);
+  *sol1 = (-b + Dis) / (2 * a);
+  *sol2 = (-b - Dis) / (2 * a);
+  return (Compr(Dis, 0)) ? 1 : 2;
 }
 
 int SolveEq(double a, double b, double c, double *sol1, double *sol2)
 {
   if (a == 0 && b == 0 && c == 0)
     return 0x1E;
-  else if (a == 0 && b == 0)
+  if (a == 0 && b == 0)
     return 0;
-  else if (a == 0)
+  if (a == 0)
     return SolveLin(b, c, sol1, sol2);
-  else if (b * b - 4 * a * c >= 0)
+  if (b * b - 4 * a * c >= 0)
     return SolveQuad(a, b, c, sol1, sol2);
-  else
-    return 0;
+
+  /* Discriminant < 0, and equations has no solutions */
+  return 0;
 }
 void main(void)
 {
   double a, b, c, sol1, sol2;
   int res;
+
+  a = b = c = sol1 = sol2 = res = 0xEF;
  
   scanf("%lf %lf %lf", &a, &b, &c);
 
