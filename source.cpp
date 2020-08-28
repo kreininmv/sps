@@ -99,7 +99,6 @@ int SolveEq(double a, double b, double c, double *sol1, double *sol2)
   return SolveQuad(a, b, c, sol1, sol2);
 } /* End of 'SolveEq' function */
 
-
 /* Main function.
  * ARGUMENTS: None.
  * RETURNS: None.
@@ -107,14 +106,17 @@ int SolveEq(double a, double b, double c, double *sol1, double *sol2)
 void main(void)
 {
   double a = 0xEF, b = 0xEF, c = 0xEF, sol1 = 0xEF, sol2 = 0xEF;
-  int res = 0xEF;
-  
+  int res = 0xEF, check = 0;
+
   printf("Progrram of solving equation, entered coefficients:\n");
-  if (scanf("%lg %lg %lg", &a, &b, &c) != 3)
+  check = scanf("%lg %lg %lg", &a, &b, &c);
+  while (check != 3)
   {
     printf("Something going wrong, please enter numbers!\n");
-    return;
+    getchar();
+    check = scanf("%lg %lg %lg", &a, &b, &c);
   }
+
   printf("\n");
 
   res = SolveEq(a, b, c, &sol1, &sol2);
