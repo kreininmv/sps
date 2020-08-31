@@ -7,7 +7,7 @@
 #define per_error 5e-4
 #define any_sol 0x1E
 
-/* Check inaccuracy of numbers.
+/* Check inaccuracy of 2 numbers.
  * ARGUMENTS:
  *   - first number:
  *       double a;
@@ -19,6 +19,22 @@
 int Compr(double a, double b)
 {
   if (fabs(a - b) <= per_error)
+    return 1;
+  return 0;
+} /* End of 'Compr' function */
+
+/* Check inaccuracy of numbers.
+ * ARGUMENTS:
+ *   - first group of number:
+ *       double a0, double b0;
+ *   - second group of number:
+ *       double a1, double b1;
+ * RETURNS:
+ *   (int) true or false.
+ */
+int Compr2(double a0, double b0, double a1, double b1)
+{
+  if ((Compr(a0, a1) && Compr(b0, b1)) || (Compr(a0, b1) && Compr(b0, a1)))
     return 1;
   return 0;
 } /* End of 'Compr' function */
@@ -42,6 +58,7 @@ int SolveLin(double b, double c, double *sol1, double *sol2)
     return any_sol;
   if (b == 0)
     return 0;
+  
   *sol1 = *sol2 = -c / b;
   return 1;
 } /* End of 'SolveLin' function */
@@ -64,8 +81,9 @@ int SolveLin(double b, double c, double *sol1, double *sol2)
 int SolveQuad(double a, double b, double c, double *sol1, double *sol2)
 {
   double Dis = b * b - 4 * a * c;
-  if (Dis < 0)
+  if (Dis < 0 || (Compr(Dis, 0) == false))
     return 0;
+
   *sol1 = (-b + sqrt(Dis)) / (2 * a);
   *sol2 = (-b - sqrt(Dis)) / (2 * a);
   return (Compr(Dis, 0)) ? 1 : 2;
@@ -147,8 +165,10 @@ void Menu(int res, double *sol1, double *sol2)
 void Input(double *a, double *b, double *c)
 {
   int check = 0;
+  
   printf("Progrram of solving equation, entered coefficients:\n");
   check = scanf("%lg %lg %lg", a, b, c);
+  
   while (check != 3)
   {
     printf("Something going wrong, please enter numbers!\n");
@@ -177,7 +197,7 @@ void Input(double *a, double *b, double *c)
  */
 int Test(double a, double b, double c, double sol1, double sol2, int numroots)
 {
-  double localsol1, localsol2;
+  double localsol1 = 0, localsol2 = 0;
 
  /* Count of roots are the same and one of three conditions are true:
   * 1) count of roots - zero
@@ -185,17 +205,13 @@ int Test(double a, double b, double c, double sol1, double sol2, int numroots)
   * 3) count of roots - two and roots are similar
   * 4) count of roots - 0x1E
   */
-  if (numroots == SolveEq(a, b, c, &localsol1, &localsol2))
-  {
-    if (numroots == 0)
-      return 1;
-    if (numroots == 1 && localsol1 == sol1)
-      return 1;
-    if (numroots == 2 && ((Compr(localsol1, sol1) && Compr(localsol2, sol2)) || (Compr(localsol2, sol1) && Compr(localsol1, sol2))))
-      return 1;
-    if (numroots == any_sol)
-      return 1;
-  }
+  if ((numroots == SolveEq(a, b, c, &localsol1, &localsol2)) && 
+      ((numroots == 0) ||
+       (numroots == 1 && Compr(localsol1, sol1)) ||
+       (numroots == 2 && Compr2(sol1, sol2, localsol1, localsol2)) ||
+       (numroots == any_sol)))
+    return 1;
+    
   return 0;
 }/* End of 'Test' function */
 
@@ -208,8 +224,10 @@ void UTest(void)
   FILE *FIn, *FOut;
   double a = 0, b = 0, c = 0, sol1 = 0, sol2 = 0, numr = 0;
   int i = 1;
+  
   FIn = fopen("tests.dat", "r");
   FOut = fopen("results.dat", "w");
+  
   if (FIn == NULL)
   {
     printf("We can't find the file...\n");
@@ -222,6 +240,7 @@ void UTest(void)
     getchar();
     return;
   }
+  
   while (fscanf(FIn, "%lg %lg %lg %lg %lg %lg", &a, &b, &c, &sol1, &sol2, &numr) == 6)
   {
     if (Test(a, b, c, sol1, sol2, (int)numr) != true)
@@ -232,6 +251,7 @@ void UTest(void)
   }
   fclose(FOut);
 } /* End of 'UTest' function */
+
 /* Main function.
  * ARGUMENTS: None.
  * RETURNS: None.
