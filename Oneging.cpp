@@ -2,8 +2,6 @@
 #include <windows.h>
 #include <string.h>
 
-#define MAX 0xEF
-
 /* Swap two elements function.
  * ARGUMENTS:
  *   - point to the first element:
@@ -57,7 +55,7 @@ int StrCompare(char *str1, char *str2)
  *        int N;
  * RETURNS: None.
  */
-void QuickSortStrings(char **A, int N)
+void QuickSortStrings(char **A, int N, int (*Compare)(char *, char*))
 {
   long b = 0, e = N - 1;
   char *x = A[N / 2];
@@ -67,9 +65,9 @@ void QuickSortStrings(char **A, int N)
   
   while (b <= e)
   {
-    while (StrCompare(x, A[b]) > 0)
+    while (Compare(x, A[b]) > 0)
       b++;
-    while (StrCompare(A[e], x) > 0)
+    while (Compare(A[e], x) > 0)
       e--;
     if (b <= e)
     {
@@ -79,8 +77,8 @@ void QuickSortStrings(char **A, int N)
       e--;
     }
   }
-  QuickSortStrings(A, e + 1);
-  QuickSortStrings(A + b, N - b);
+  QuickSortStrings(A, e + 1, StrCompare);
+  QuickSortStrings(A + b, N - b, StrCompare);
 }/* End of 'QuickSort' function */
 
 /* Read strokes from file function.
@@ -95,7 +93,9 @@ void QuickSortStrings(char **A, int N)
  */
 char ** ReadStr(char **str, char *FileName, int *size)
 {
-  char newstr[MAX] = {};
+  char *newstr = NULL;
+  char x = 0;
+  int lencur = 0, lenstr = 0;
   FILE *F = fopen(FileName, "r");
 
   if (F == NULL)
@@ -104,30 +104,42 @@ char ** ReadStr(char **str, char *FileName, int *size)
     getchar();
     return 0;
   }
-
-  char x = fgetc(F);
-  while (x != EOF)
+  
+  do
   {
     if (x == '\n')
       (*size)++;
     x = fgetc(F);
-  }
-  (*size)++;
+  } while (x != EOF);
 
   rewind(F);
 
-  str = (char **)malloc((*size) * sizeof(char*));
+  str = (char **)calloc((*size), sizeof(char *));
   
   for (int i = 0; i < *size; i++)
   {
-    fgets(newstr, MAX, F);
-   
-    str[i] = (char *)malloc((strlen(newstr) + 1) * sizeof(char));
+    do
+    {
+      x = fgetc(F);
+      lenstr++;
+    } while (x != '\n' && x != EOF);
+    lenstr++;
+    fseek(F, lencur * sizeof(char), SEEK_SET);
+    lencur += lenstr;
+    
+    newstr = (char *)calloc(lenstr, sizeof(char));
+    for (int i = 0; i < lenstr; i++)
+      newstr[i] = 0;
+
+    fgets(newstr, lenstr, F);
+
+    str[i] = (char *)calloc(lenstr, sizeof(char));
     
     strcpy(str[i], newstr);
-    
-    for (int k = 0; k < MAX; k++)
-      newstr[k] = 0;
+    printf("%s", str[i]);
+    /* Clear newstr */
+    lenstr = 0;
+    free(newstr);
   }
 
   fclose(F);
@@ -146,9 +158,7 @@ char ** ReadStr(char **str, char *FileName, int *size)
  */
 void WriteStr(char **str, char *FileName, int size)
 {
-  FILE *F;
-  int i = 0, k = 0;
-  F = fopen(FileName, "w");
+  FILE *F = fopen(FileName, "w");
 
   if (F == NULL)
   {
@@ -157,11 +167,40 @@ void WriteStr(char **str, char *FileName, int size)
     return;
   }
 
-  for (i = 0; i < size; i++)
+  for (int i = 0; i < size; i++)
     fprintf(F, "%s", str[i]);
 
   fclose(F);
 }/* End of 'WriteStr' function */
+
+/* Reverse array function. 
+ * ARGUMENTS: 
+ *   - array of strings:
+ *        char **str;
+ *   - size of array:
+ *        int size;
+ * RETURNS: None.
+ */
+void Reverse(char **str, int size)
+{
+  for (int i = 0; i < size / 2; i++)
+    Swap(str + i, str + size - i - 1);
+}
+/* End of 'Reverse' function */
+
+/* Clearing memory of array function.
+ * ARGUMENTS:
+ *   - array of strings:
+ *        char **str;
+ *   - size of array:
+ *        int size;
+ * RETURNS: none.
+ */
+void ClearMemory(char **str, int size)
+{
+  for (int i = 0; i < size; i++)
+    free(str[i]);
+} /* End of 'ClearMemory' function */
 
 /* Main function.
  * ARGUMENTS: None.
@@ -172,9 +211,10 @@ int main(void)
   char **str = NULL, InFileName[] = "IN_onegin.txt", OutFileName[] = "OUT_onegin.txt";
   int size = 0;
   
-  str = ReadStr(str, InFileName, &size);  
-  QuickSortStrings(str, size);
+  str = ReadStr(str, InFileName, &size);
+  QuickSortStrings(str, size, StrCompare);
   WriteStr(str, OutFileName, size);
+  ClearMemory(str, size);
 
   return 0;
 }/* End of 'main' function */
