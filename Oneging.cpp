@@ -21,13 +21,15 @@ void Swap(char **str1, char **str2)
 /* Strings comparing function.
  * ARGUMENTS:
  *   - point to first string:
- *        char *str1;
+ *        char *strA;
  *   - point to second string:
  *        char *str2;
- * RETURNS: number > 0 if (str1 > str2) and number < 0 if (str1 < str 2) and 0 if (str1 = str2) 
+ * RETURNS: number > 0 if (strA > strB) and number < 0 if (strA < strB) and 0 if (strA = strB) 
  */
-int StrCompare(char *str1, char *str2)
+int StrCompare(const void *strA, const void *strB)
 {
+  char *str1 = (char *)strA, *str2 = (char *)strB;
+
   while (*str1 == ' ' || *str1 == '\t')
     str1++;
   while (*str2 == ' ' || *str2 == '\t')
@@ -53,9 +55,11 @@ int StrCompare(char *str1, char *str2)
  *        char **str;
  *   - size of array:
  *        int N;
+ *   - point for comparing function:
+ *        int (*Compare)(char *, char *);
  * RETURNS: None.
  */
-void QuickSortStrings(char **A, int N, int (*Compare)(char *, char*))
+void QuickSortStrings(char **A, int N, int (*Compare)(const void *, const void *))
 {
   long b = 0, e = N - 1;
   char *x = A[N / 2];
@@ -136,7 +140,7 @@ char ** ReadStr(char **str, char *FileName, int *size)
     str[i] = (char *)calloc(lenstr, sizeof(char));
     
     strcpy(str[i], newstr);
-    printf("%s", str[i]);
+    //printf("%s", str[i]);
     /* Clear newstr */
     lenstr = 0;
     free(newstr);
@@ -217,4 +221,4 @@ int main(void)
   ClearMemory(str, size);
 
   return 0;
-}/* End of 'main' function */
+}/* End of 'main' fu  nction */
