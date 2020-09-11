@@ -1,6 +1,107 @@
+/* FILE NAME   : Onegin.cpp
+ * PURPOSE     : Main start module.
+ * PROGRAMMER  : Matvei Kreinin,    
+ * LAST UPDATE : 10.09.2020.
+ * NOTE        : None.
+ */
+
 #include <stdio.h>
+#include <assert.h>
 #include <windows.h>
 #include <string.h>
+
+ /* Swap two elements function.
+  * ARGUMENTS:
+  *   - point to the first element:
+  *        char *str1;
+  *   - point to the second element:
+  *        char *str2;
+  * RETURNS: None.
+  */
+void Swap(char **str1, char **str2);
+
+/* Strings comparing function.
+ * ARGUMENTS:
+ *   - point to first string:
+ *        char *strA;
+ *   - point to second string:
+ *        char *str2;
+ * RETURNS: number > 0 if (strA > strB) and number < 0 if (strA < strB) and 0 if (strA = strB)
+ */
+int StrCompare(const void *strA, const void *strB);
+
+/* Sort array of string function.
+ * ARGUMENTS:
+ *   - array of strokes:
+ *        char **str;
+ *   - size of array:
+ *        int N;
+ *   - point for comparing function:
+ *        int (*Compare)(char *, char *);
+ * RETURNS: None.
+ */
+void QuickSortStrings(char **A, int N, int(*Compare)(const void *, const void *));
+
+/* Read strokes from file function.
+ * ARGUMENTS:
+ *   - array of strings:
+ *        char **str;
+ *   - name of file:
+ *        char *FilaName;
+ *   - point to the size of array:
+ *        int *size;
+ * RETURNS: array of strings.
+ */
+int ReadStr(char ***STR, const char *FileName);
+
+/* Write array of strings to the file function.
+ * ARGUMENTS:
+ *   - array of strings:
+ *        char **str;
+ *   - name of file:
+ *        char *FileName;
+ *   - size of array:
+ *        int size;
+ * RETURNS: None.
+ */
+void WriteStr(char **str, const char *FileName, int size);
+
+/* Clearing memory of array function.
+ * ARGUMENTS:
+ *   - array of strings:
+ *        char **str;
+ *   - size of array:
+ *        int size;
+ * RETURNS: none.
+ */
+void ClearMemory(char **str, int size);
+
+/* Reverse array function.
+ * ARGUMENTS:
+ *   - array of strings:
+ *        char **str;
+ *   - size of array:
+ *        int size;
+ * RETURNS: None.
+ */
+void Reverse(char **str, int size);
+
+/* Main function.
+ * ARGUMENTS: None.
+ * RETURNS: None.
+ */
+int main( void )
+{
+  char **str = NULL;
+  char const InFileName[] = "IN_onegin.txt", OutFileName[] = "OUT_onegin.txt";
+  int size = ReadStr(&str, InFileName);
+
+  QuickSortStrings(str, size, StrCompare);
+  WriteStr(str, OutFileName, size);
+  ClearMemory(str, size);
+
+  return 0;
+}/* End of 'main' fu  nction */
 
 /* Swap two elements function.
  * ARGUMENTS:
@@ -10,7 +111,7 @@
  *        char *str2;
  * RETURNS: None.
  */
-void Swap(char **str1, char **str2)
+void Swap( char **str1, char **str2 )
 {
   char *tmp = *str1;
   *str1 = *str2;
@@ -26,7 +127,7 @@ void Swap(char **str1, char **str2)
  *        char *str2;
  * RETURNS: number > 0 if (strA > strB) and number < 0 if (strA < strB) and 0 if (strA = strB) 
  */
-int StrCompare(const void *strA, const void *strB)
+int StrCompare( const void *strA, const void *strB )
 {
   char *str1 = (char *)strA, *str2 = (char *)strB;
 
@@ -59,7 +160,7 @@ int StrCompare(const void *strA, const void *strB)
  *        int (*Compare)(char *, char *);
  * RETURNS: None.
  */
-void QuickSortStrings(char **A, int N, int (*Compare)(const void *, const void *))
+void QuickSortStrings( char **A, int N, int (*Compare)(const void *, const void *) )
 {
   long b = 0, e = N - 1;
   char *x = A[N / 2];
@@ -95,59 +196,55 @@ void QuickSortStrings(char **A, int N, int (*Compare)(const void *, const void *
  *        int *size;
  * RETURNS: array of strings.
  */
-char ** ReadStr(char **str, char *FileName, int *size)
+int ReadStr( char ***STR, const char *FileName )
 {
-  char *newstr = NULL;
-  char x = 0;
-  int lencur = 0, lenstr = 0;
+  int size = 0;
   FILE *F = fopen(FileName, "r");
 
   if (F == NULL)
   {
     printf("We can't find the file...\n");
-    getchar();
-    return 0;
+    assert(0);
   }
-  
-  do
+
+  int tmp = 0;
+  do 
   {
-    if (x == '\n')
-      (*size)++;
-    x = fgetc(F);
-  } while (x != EOF);
+    if (tmp == '\n')
+      size++;
+    tmp = fgetc(F);
+  } while (tmp != EOF);
 
   rewind(F);
 
-  str = (char **)calloc((*size), sizeof(char *));
+  char **str = (char **)calloc(size, sizeof(char *));
   
-  for (int i = 0; i < *size; i++)
+  long lencur = 0;
+
+  for (int i = 0; i < size; i++)
   {
+    int lenstr = 0;
+
     do
     {
-      x = fgetc(F);
+      tmp = fgetc(F);
       lenstr++;
-    } while (x != '\n' && x != EOF);
+    } while (tmp != '\n' && tmp != EOF);
+
     lenstr++;
     fseek(F, lencur * sizeof(char), SEEK_SET);
     lencur += lenstr;
-    
-    newstr = (char *)calloc(lenstr, sizeof(char));
-    for (int i = 0; i < lenstr; i++)
-      newstr[i] = 0;
+   
 
-    fgets(newstr, lenstr, F);
-
-    str[i] = (char *)calloc(lenstr, sizeof(char));
+    str[i] = (char *)calloc(lenstr + 1, sizeof(char));
+    fgets(str[i], lenstr, F);
     
-    strcpy(str[i], newstr);
-    //printf("%s", str[i]);
-    /* Clear newstr */
-    lenstr = 0;
-    free(newstr);
   }
 
+  *STR = str;
   fclose(F);
-  return str;
+
+  return size;
 } /* End of 'ReadStr' function */
 
 /* Write array of strings to the file function.
@@ -160,15 +257,14 @@ char ** ReadStr(char **str, char *FileName, int *size)
  *        int size;
  * RETURNS: None.
  */
-void WriteStr(char **str, char *FileName, int size)
+void WriteStr( char **str, const char *FileName, int size )
 {
   FILE *F = fopen(FileName, "w");
 
   if (F == NULL)
   {
     printf("We can't create the file...\n");
-    getchar();
-    return;
+    assert(0);
   }
 
   for (int i = 0; i < size; i++)
@@ -185,7 +281,7 @@ void WriteStr(char **str, char *FileName, int size)
  *        int size;
  * RETURNS: None.
  */
-void Reverse(char **str, int size)
+void Reverse( char **str, int size )
 {
   for (int i = 0; i < size / 2; i++)
     Swap(str + i, str + size - i - 1);
@@ -200,25 +296,9 @@ void Reverse(char **str, int size)
  *        int size;
  * RETURNS: none.
  */
-void ClearMemory(char **str, int size)
+void ClearMemory( char **str, int size )
 {
   for (int i = 0; i < size; i++)
     free(str[i]);
+  free(str);
 } /* End of 'ClearMemory' function */
-
-/* Main function.
- * ARGUMENTS: None.
- * RETURNS: None.
- */
-int main(void)
-{
-  char **str = NULL, InFileName[] = "IN_onegin.txt", OutFileName[] = "OUT_onegin.txt";
-  int size = 0;
-  
-  str = ReadStr(str, InFileName, &size);
-  QuickSortStrings(str, size, StrCompare);
-  WriteStr(str, OutFileName, size);
-  ClearMemory(str, size);
-
-  return 0;
-}/* End of 'main' fu  nction */
