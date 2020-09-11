@@ -6,6 +6,7 @@
 
 #define per_error 5e-4
 #define any_sol 0x1E
+#define TRUE 1
 
 /* Check inaccuracy of 2 numbers.
  * ARGUMENTS:
@@ -16,7 +17,140 @@
  * RETURNS:
  *   (int) true or false.
  */
-int Compr(double a, double b)
+int Compr(double a, double b);
+
+/* Check inaccuracy of numbers.
+ * ARGUMENTS:
+ *   - first group of number:
+ *       double a0, double b0;
+ *   - second group of number:
+ *       double a1, double b1;
+ * RETURNS:
+ *   (int) true or false.
+ */
+int Compr2(double a0, double b0, double a1, double b1);
+
+/* Solve linear equation function.
+ * ARGUMENTS:
+ *   - coefficient b:
+ *       double b;
+ *   - coefficient c:
+ *       double c;
+ *   - pointer to solution:
+ *       double *sol;
+ * RETURNS:
+ *   (int) number of desicions.
+ */
+int SolveLin(double b, double c, double *sol);
+
+/* Solve quadratic ecuation function.
+ * ARGUMENTS:
+ *   - coefficient a:
+ *       double a;
+ *   - coefficient b:
+ *       double b;
+ *   - coefficient c:
+ *       double c;
+ *   - pointer to solution 1:
+ *       double *sol1;
+ *   - pointer to solution 2:
+ *       double *sol2;
+ * RETURNS:
+ *   (int) number of desicions.
+ */
+int SolveQuad(double a, double b, double c, double *sol1, double *sol2);
+
+/* Solve equation function.
+ * ARGUMENTS:
+ *   - coefficient a:
+ *       double a;
+ *   - coefficient b:
+ *       double b;
+ *   - coefficient c:
+ *       double c;
+ *   - pointer to solution 1:
+ *       double *sol1;
+ *   - pointer to solution 2:
+ *       double *sol2;
+ * RETURNS:
+ *   (int) number of desicions.
+ */
+int SolveEq(double a, double b, double c, double *sol1, double *sol2);
+
+/* Menu function.
+ * ARGUMENTS:
+ *   - result of solve equation:
+ *        int res;
+ *   - point to first root of equation:
+ *        double *sol1;
+ *   - point to second root of equation:
+ *        double *sol2;
+ * RETURNS: None.
+ */
+void Menu(int res, double *sol1, double *sol2);
+
+/* Input function.
+ * ARGUMENTS:
+ *   - coefficient a:
+ *       double a;
+ *   - coefficient b:
+ *       double b;
+ *   - coefficient c:
+ *       double c;
+ * RETURNS: None.
+ */
+void Input(double *a, double *b, double *c);
+
+/* Test function.
+ * ARGUMENTS:
+ *   - coefficient a:
+ *       double a;
+ *   - coefficient b:
+ *       double b;
+ *   - coefficient c:
+ *       double c;
+ *   - first root of equation:
+ *        double sol1;
+ *   - second root of equation:
+ *        double sol2;
+ *   - num of roots:
+ *        int numroots;
+ * RETURNS: true or false.
+ */
+int Test(double a, double b, double c, double sol1, double sol2, int numroots);
+
+/* Unit test function.
+ * ARGUMENTS: None.
+ * RETURNS: None.
+ */
+void UTest(void);
+
+/* Main function.
+ * ARGUMENTS: None.
+ * RETURNS: None.
+ */
+int main(void)
+{
+  double a = 0xEF, b = 0xEF, c = 0xEF, sol1 = 0xEF, sol2 = 0xEF;
+
+  Input(&a, &b, &c);
+  Menu(SolveEq(a, b, c, &sol1, &sol2), &sol1, &sol2);
+  UTest();
+  getchar();
+  getchar();
+  return 0;
+} /* End of 'main' function */
+
+/* Check inaccuracy of 2 numbers.
+ * ARGUMENTS:
+ *   - first number:
+ *       double a;
+ *   - second number:
+ *       double b;
+ * RETURNS:
+ *   (int) true or false.
+ */
+int Compr( double a, double b )
 {
   if (fabs(a - b) <= per_error)
     return 1;
@@ -32,9 +166,9 @@ int Compr(double a, double b)
  * RETURNS:
  *   (int) true or false.
  */
-int Compr2(double a0, double b0, double a1, double b1)
+int Compr2( double a0, double b0, double a1, double b1 )
 {
-  if ((Compr(a0, a1) && Compr(b0, b1)) || (Compr(a0, b1) && Compr(b0, a1)))
+  if ((Compr(a0, a1) && Compr(b0, b1)))
     return 1;
   return 0;
 } /* End of 'Compr' function */
@@ -45,21 +179,19 @@ int Compr2(double a0, double b0, double a1, double b1)
  *       double b;
  *   - coefficient c:
  *       double c;
- *   - pointer to solution 1:
- *       double *sol1;
- *   - pointer to solution 2:
- *       double *sol2;
+ *   - pointer to solution:
+ *       double *sol;
  * RETURNS:
  *   (int) number of desicions.
  */
-int SolveLin(double b, double c, double *sol1, double *sol2)
+int SolveLin( double b, double c, double *sol )
 {
-  if (b == 0 && c == 0)
+  if (Compr2(b, c, 0, 0))
     return any_sol;
-  if (b == 0)
+  if (Compr(b, 0))
     return 0;
   
-  *sol1 = *sol2 = -c / b;
+  *sol =  -c / b;
   return 1;
 } /* End of 'SolveLin' function */
 
@@ -78,10 +210,17 @@ int SolveLin(double b, double c, double *sol1, double *sol2)
  * RETURNS:
  *   (int) number of desicions.
  */
-int SolveQuad(double a, double b, double c, double *sol1, double *sol2)
+int SolveQuad( double a, double b, double c, double *sol1, double *sol2 )
 {
+  if (Compr(c, 0))
+  {
+    *sol1 = 0;
+    SolveLin(a, b, sol2);
+    return (Compr(*sol1, *sol2)) ? 1 : 2;
+  }
+
   double Dis = b * b - 4 * a * c;
-  if (Dis < 0 || (Compr(Dis, 0) == false))
+  if (Dis < 0 || (Compr(Dis, 0) != false))
     return 0;
 
   *sol1 = (-b + sqrt(Dis)) / (2 * a);
@@ -104,7 +243,7 @@ int SolveQuad(double a, double b, double c, double *sol1, double *sol2)
  * RETURNS: 
  *   (int) number of desicions.
  */
-int SolveEq(double a, double b, double c, double *sol1, double *sol2)
+int SolveEq( double a, double b, double c, double *sol1, double *sol2 )
 {
   assert(isfinite(a));
   assert(isfinite(b));
@@ -114,8 +253,8 @@ int SolveEq(double a, double b, double c, double *sol1, double *sol2)
   assert(sol2 != NULL);
   assert(sol1 != sol2);
 
-  if (a == 0)
-    return SolveLin(b, c, sol1, sol2);
+  if (Compr(a, 0))
+    return SolveLin(b, c, sol1);
   return SolveQuad(a, b, c, sol1, sol2);
 } /* End of 'SolveEq' function */
 
@@ -129,7 +268,7 @@ int SolveEq(double a, double b, double c, double *sol1, double *sol2)
  *        double *sol2;
  * RETURNS: None.
  */
-void Menu(int res, double *sol1, double *sol2)
+void Menu( int res, double *sol1, double *sol2 )
 {
   switch (res)
   {
@@ -162,17 +301,21 @@ void Menu(int res, double *sol1, double *sol2)
  *       double c;
  * RETURNS: None.
  */
-void Input(double *a, double *b, double *c)
+void Input( double *a, double *b, double *c )
 {
   int check = 0;
   
-  printf("Progrram of solving equation, entered coefficients:\n");
+  printf("Progrram of solving equation, entered coefficients, a b c:");
   check = scanf("%lg %lg %lg", a, b, c);
-  
+
   while (check != 3)
   {
-    printf("Something going wrong, please enter numbers!\n");
-    fflush(stdout);
+    printf("\nSomething going wrong, please enter numbers!!!\n");
+    printf("Progrram of solving equation, entered coefficients, a b c:");
+    
+    while (getchar() != '\n')
+      ;
+
     check = scanf("%lg %lg %lg", a, b, c);
   }
   printf("\n");
@@ -195,7 +338,7 @@ void Input(double *a, double *b, double *c)
  *        int numroots;
  * RETURNS: true or false.
  */
-int Test(double a, double b, double c, double sol1, double sol2, int numroots)
+int Test( double a, double b, double c, double sol1, double sol2, int numroots )
 {
   double localsol1 = 0, localsol2 = 0;
 
@@ -205,11 +348,11 @@ int Test(double a, double b, double c, double sol1, double sol2, int numroots)
   * 3) count of roots - two and roots are similar
   * 4) count of roots - 0x1E
   */
-  if ((numroots == SolveEq(a, b, c, &localsol1, &localsol2)) && 
-      ((numroots == 0) ||
-       (numroots == 1 && Compr(localsol1, sol1)) ||
-       (numroots == 2 && Compr2(sol1, sol2, localsol1, localsol2)) ||
-       (numroots == any_sol)))
+  if ((numroots == SolveEq(a, b, c, &localsol1, &localsol2)) 
+    && ((numroots == 0) 
+       || (numroots == 1 && Compr(localsol1, sol1)) 
+       || (numroots == 2 && Compr2(sol1, sol2, localsol1, localsol2)) 
+       || (numroots == any_sol)))
     return 1;
     
   return 0;
@@ -219,11 +362,11 @@ int Test(double a, double b, double c, double sol1, double sol2, int numroots)
  * ARGUMENTS: None.
  * RETURNS: None.
  */
-void UTest(void)
+void UTest( void )
 {
   FILE *FIn, *FOut;
-  double a = 0, b = 0, c = 0, sol1 = 0, sol2 = 0, numr = 0;
-  int i = 1;
+  double a = 0, b = 0, c = 0, sol1 = 0, sol2 = 0;
+  int i = 1, numr = 0;
   
   FIn = fopen("tests.dat", "r");
   FOut = fopen("results.dat", "w");
@@ -231,19 +374,17 @@ void UTest(void)
   if (FIn == NULL)
   {
     printf("We can't find the file...\n");
-    getchar();
-    return;
+    assert(0);
   }
   if (FOut == NULL)
   {
     printf("We can't create this file...\n");
-    getchar();
-    return;
+    assert(0);
   }
   
-  while (fscanf(FIn, "%lg %lg %lg %lg %lg %lg", &a, &b, &c, &sol1, &sol2, &numr) == 6)
+  while (fscanf(FIn, "%lg %lg %lg %lg %lg %d", &a, &b, &c, &sol1, &sol2, &numr) == 6)
   {
-    if (Test(a, b, c, sol1, sol2, (int)numr) != true)
+    if (Test(a, b, c, sol1, sol2, numr) != TRUE)
       fprintf(FOut, "TEST N - %i ERROR!!\n", i);
     else
       fprintf(FOut, "TEST N - %i GOOD!!!\n", i);
@@ -251,19 +392,3 @@ void UTest(void)
   }
   fclose(FOut);
 } /* End of 'UTest' function */
-
-/* Main function.
- * ARGUMENTS: None.
- * RETURNS: None.
- */
-void main(void)
-{
-  double a = 0xEF, b = 0xEF, c = 0xEF, sol1 = 0xEF, sol2 = 0xEF;
-
-  Input(&a, &b, &c);
-  Menu(SolveEq(a, b, c, &sol1, &sol2), &sol1, &sol2);
-  UTest();
-  getchar();
-  getchar();
-  
-} /* End of 'main' function */
