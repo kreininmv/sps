@@ -218,7 +218,6 @@ int ReadStr( char ***STR, const char *FileName )
   rewind(F);
 
   char **str = (char **)calloc(size, sizeof(char *));
-  
   long lencur = 0;
 
   for (int i = 0; i < size; i++)

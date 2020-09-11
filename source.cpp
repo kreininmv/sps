@@ -346,7 +346,7 @@ int Test( double a, double b, double c, double sol1, double sol2, int numroots )
   * 1) count of roots - zero
   * 2) count of roots - one and root is similar
   * 3) count of roots - two and roots are similar
-  * 4) count of roots - 0x1E
+  * 4) count of roots - any_sol (0x1E)
   */
   if ((numroots == SolveEq(a, b, c, &localsol1, &localsol2)) 
     && ((numroots == 0) 
