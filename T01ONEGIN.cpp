@@ -10,11 +10,12 @@
 #include <windows.h>
 #include <string.h>
 
-/* Swap two elements function.
- * \param[in]  point to the first element  - void *str1;
- * \param[in]  point to the second element - void *str2;
- * \param[out] none.
- */
+ /*! Swap two elements function.
+  * \param[in]  point to the first element  - void **str1;
+  * \param[in]  point to the second element - void **str2;
+  * \param[out] none.
+  */
+void Swap(void **str1, void **str2);
 
 /* Strings comparing function.
  * \param[in]  point to first string  - char *str1;
